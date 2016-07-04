@@ -3,7 +3,7 @@
 const char *my_strstr(const char *where, const char *what) {
     const char *s;
 
-    if (!what)  return NULL;
+    if (!where || !what)  return NULL;
     if (!*what)  return where;
 
     s = what;
