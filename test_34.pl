@@ -67,16 +67,27 @@ BEGIN {
         });
     }
 
-    my $connection;
+    my ($connection, @defers_cb, $in_connect);
     sub foo_singleton {
         my ($host, $port, $cb) = @_;
         
         return $cb->($connection) if $connection;
+        if ($in_connect) {
+            push @defers_cb, $cb;
+            return;
+        }
+
+        $in_connect = 1;
 
         $PACKAGE->connect($host, $port, sub {
             my $conn = shift;
             $connection = $conn;
             $cb->($connection);
+
+            $in_connect = 0;
+            while (@defers_cb) {
+                (shift @defers_cb)->($connection);
+            }
         });
         return;
     }
